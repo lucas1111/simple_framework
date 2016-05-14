@@ -1,20 +1,51 @@
 <?php namespace app;
 
 use fun\HttpCheckRequest;
+use fun\myRedis;
 
 //类名与文件名一致
 class TelQuery{
 	const PHONE_API = 'https://tcc.taobao.com/cc/json/mobile_tel_segment.htm';
+	const QUERY_PHONE = 'PHONE:INFO:';
 
 	public static function query($phoneNum){
 		//var_dump(preg_match('/^0?1[3|4|5|7|8][0-9]\d{8}$/', $phoneNum));
 		//var_dump(self::checkTel($phoneNum));
 		if(self::checkTel($phoneNum)){
-			//var_dump('TelQuery_query');
-			//HttpCheckRequest::testRequest();
-			//var_dump(HttpCheckRequest::request(self::PHONE_API,['tel'=>$phoneNum]));
-			HttpCheckRequest::request(self::PHONE_API,['tel'=>$phoneNum]);
+			$redisKey = sprintf(self::QUERY_PHONE . '%s', substr($phone, 0, 7));
+            $phoneInfo = myRedis::getRedis()->get($redisKey);
+
+			if (!$phoneInfo) {
+				//var_dump('TelQuery_query');
+				//HttpCheckRequest::testRequest();
+				//var_dump(HttpCheckRequest::request(self::PHONE_API,['tel'=>$phoneNum]));
+				$response = HttpCheckRequest::request(self::PHONE_API,['tel'=>$phoneNum]);
+				$phoneInfo = self::formatData($response);
+				//var_dump($phoneInfo);
+                if ($phoneInfo) {
+                    myRedis::getRedis()->set($redisKey, json_encode($phoneInfo));
+                }
+                $phoneInfo['msg'] = '数据由阿里巴巴API提供';
+            } else {
+                $phoneInfo = json_decode($phoneInfo, true);
+                $phoneInfo['msg'] = '数据由本地数据库提供';
+            }
 		}
+		//var_dump($phoneInfo);
+		return $phoneInfo;
+	}
+
+/*格式化手机号查询信息*/	
+	public static function formatData($data){
+	    $ret = null;
+	    if (!empty($data)) {
+	        preg_match_all("/(\w+):'([^']+)/", $data, $res);
+	        $items = array_combine($res[1], $res[2]);
+	        foreach ($items as $itemKey => $itemVal) {
+	            $ret[$itemKey] = iconv('GB2312', 'UTF-8', $itemVal);
+	        }
+	    }
+	    return $ret;
 	}
 
 /**校验手机号码**/
