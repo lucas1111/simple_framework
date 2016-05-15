@@ -1,9 +1,5 @@
 /**
  * @description JS基础库<依赖jQuery>
- *
- * @author Jason <shuaijinchao@gmail.com>
- *
- * @create 2015-11-29 16:21
  */
 
 var IMOOC = IMOOC || {};

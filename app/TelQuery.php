@@ -9,13 +9,17 @@ class TelQuery{
 	const QUERY_PHONE = 'PHONE:INFO:';
 
 	public static function query($phoneNum){
+		//var_dump($phoneNum);
 		//var_dump(preg_match('/^0?1[3|4|5|7|8][0-9]\d{8}$/', $phoneNum));
 		//var_dump(self::checkTel($phoneNum));
 		if(self::checkTel($phoneNum)){
-			$redisKey = sprintf(self::QUERY_PHONE . '%s', substr($phone, 0, 7));
-            $phoneInfo = myRedis::getRedis()->get($redisKey);
-
-			if (!$phoneInfo) {
+			//$subNum = substr($phoneNum, 0, 7);
+			$redisKey = sprintf(self::QUERY_PHONE.'%s',substr($phoneNum, 0, 7));
+			//var_dump($subNum);
+			//var_dump($redisKey);
+            $phoneData = myRedis::getRedis()->get($redisKey);
+            //var_dump($phoneInfo);
+			if(!$phoneData) {
 				//var_dump('TelQuery_query');
 				//HttpCheckRequest::testRequest();
 				//var_dump(HttpCheckRequest::request(self::PHONE_API,['tel'=>$phoneNum]));
@@ -27,7 +31,7 @@ class TelQuery{
                 }
                 $phoneInfo['msg'] = '数据由阿里巴巴API提供';
             } else {
-                $phoneInfo = json_decode($phoneInfo, true);
+                $phoneInfo = json_decode($phoneData, true);
                 $phoneInfo['msg'] = '数据由本地数据库提供';
             }
 		}

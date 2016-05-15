@@ -36,7 +36,6 @@ class HttpCheckRequest{
 		}
 		//return $url;
 		return $res;
-		//return var_dump('321');
 	}
 
 	public static function testRequset(){
